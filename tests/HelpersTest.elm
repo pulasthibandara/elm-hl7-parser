@@ -3,8 +3,8 @@ module HelpersTest exposing (..)
 import Expect
 import Fuzz exposing (Fuzzer, int, list, string)
 import Helpers exposing (maybeToParser, parseMaybe, parseSizedNumber, parseStringSegment, parseStringSegmentOfSize)
+import Parser.Advanced exposing (problem, succeed)
 import Test exposing (..)
-import Parser exposing (Parser)
 import TestHelpers exposing (expectErrResult, expectOkResult)
 
 suite : Test
@@ -33,7 +33,7 @@ suite =
                         source = "123"
                         parser = parseSizedNumber 5
                     in
-                        Expect.equal Parser.UnexpectedChar
+                        Expect.equal "Not a digit"
                             |> expectErrResult parser source
             , test "fail to parse non-numeric values" <|
                 \_ ->
@@ -41,7 +41,7 @@ suite =
                         source = "12a3"
                         parser = parseSizedNumber 4
                     in
-                        Expect.equal Parser.UnexpectedChar
+                        Expect.equal "Not a digit"
                             |> expectErrResult parser source
             ]
         , describe "Helpers.parseStringSegment"
@@ -69,7 +69,7 @@ suite =
                         source = "the quick"
                         parser = parseStringSegmentOfSize 10
                     in
-                        Expect.equal Parser.UnexpectedChar
+                        Expect.equal "Unexpected segment separator"
                             |> expectErrResult parser source
             , test "fail to parse a string that terminates before size" <|
                 \_ ->
@@ -77,7 +77,7 @@ suite =
                         source = "the quick brown| fox"
                         parser = parseStringSegmentOfSize 18
                     in
-                        Expect.equal Parser.UnexpectedChar
+                        Expect.equal "Unexpected segment separator"
                             |> expectErrResult parser source
             , test "parse a string that terminates exactly on size" <|
                 \_ ->
@@ -92,7 +92,7 @@ suite =
             [ test "turn a successful parser to Maybe result" <|
                 \_ ->
                     let
-                        parser = Parser.succeed "tada!"
+                        parser = succeed "tada!"
                             |> parseMaybe
                     in
                         Expect.equal (Just "tada!")
@@ -100,7 +100,7 @@ suite =
             , test "turn a un-successful parser to Maybe result" <|
                 \_ ->
                     let
-                        parser = Parser.problem "problem!"
+                        parser = problem "problem!"
                             |> parseMaybe
                     in
                         Expect.equal Nothing
@@ -121,7 +121,7 @@ suite =
                         parser = Nothing
                             |> maybeToParser "not tada!"
                     in
-                        Expect.equal (Parser.Problem "not tada!")
+                        Expect.equal ("not tada!")
                             |> expectErrResult parser "tada!"
             ]
         ]
