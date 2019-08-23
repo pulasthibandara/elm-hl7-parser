@@ -1,9 +1,10 @@
 module TestHelpers exposing (..)
 
 import Expect exposing (Expectation, fail)
+import HL7Parser exposing (Problem(..))
 import Parser.Advanced exposing (Parser, run)
 
-expectOkResult : Parser c String a -> String  -> (a -> Expectation) -> Expectation
+expectOkResult : Parser c Problem a -> String  -> (a -> Expectation) -> Expectation
 expectOkResult parser source expectation =
     case run parser source of
         Result.Ok a ->
@@ -15,7 +16,7 @@ expectOkResult parser source expectation =
                     |> Maybe.withDefault ""
                 )
 
-expectErrResult: Parser c String a -> String -> (String -> Expectation) -> Expectation
+expectErrResult: Parser c Problem a -> String -> (Problem -> Expectation) -> Expectation
 expectErrResult parser source expectation =
     case run parser source of
         Result.Ok a ->

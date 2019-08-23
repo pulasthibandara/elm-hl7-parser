@@ -6,6 +6,7 @@ import Helpers exposing (maybeToParser, parseMaybe, parseSizedNumber, parseStrin
 import Parser.Advanced exposing (problem, succeed)
 import Test exposing (..)
 import TestHelpers exposing (expectErrResult, expectOkResult)
+import HL7Parser exposing (Problem(..))
 
 suite : Test
 suite =
@@ -33,7 +34,7 @@ suite =
                         source = "123"
                         parser = parseSizedNumber 5
                     in
-                        Expect.equal "Not a digit"
+                        Expect.equal NotANumber
                             |> expectErrResult parser source
             , test "fail to parse non-numeric values" <|
                 \_ ->
@@ -41,7 +42,7 @@ suite =
                         source = "12a3"
                         parser = parseSizedNumber 4
                     in
-                        Expect.equal "Not a digit"
+                        Expect.equal NotANumber
                             |> expectErrResult parser source
             ]
         , describe "Helpers.parseStringSegment"
@@ -69,7 +70,7 @@ suite =
                         source = "the quick"
                         parser = parseStringSegmentOfSize 10
                     in
-                        Expect.equal "Unexpected segment separator"
+                        Expect.equal UnexpectedSeparator
                             |> expectErrResult parser source
             , test "fail to parse a string that terminates before size" <|
                 \_ ->
@@ -77,7 +78,7 @@ suite =
                         source = "the quick brown| fox"
                         parser = parseStringSegmentOfSize 18
                     in
-                        Expect.equal "Unexpected segment separator"
+                        Expect.equal UnexpectedSeparator
                             |> expectErrResult parser source
             , test "parse a string that terminates exactly on size" <|
                 \_ ->
@@ -100,7 +101,7 @@ suite =
             , test "turn a un-successful parser to Maybe result" <|
                 \_ ->
                     let
-                        parser = problem "problem!"
+                        parser = problem NotANumber
                             |> parseMaybe
                     in
                         Expect.equal Nothing
@@ -111,7 +112,7 @@ suite =
                 \_ ->
                     let
                         parser = Just "tada!"
-                            |> maybeToParser "not tada!"
+                            |> maybeToParser UnexpectedSeparator
                     in
                         Expect.equal "tada!"
                             |> expectOkResult parser "tada!"
@@ -119,9 +120,9 @@ suite =
                 \_ ->
                     let
                         parser = Nothing
-                            |> maybeToParser "not tada!"
+                            |> maybeToParser UnexpectedSeparator
                     in
-                        Expect.equal ("not tada!")
+                        Expect.equal (UnexpectedSeparator)
                             |> expectErrResult parser "tada!"
             ]
         ]

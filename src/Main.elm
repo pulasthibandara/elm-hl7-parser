@@ -3,6 +3,7 @@ module Main exposing (HD, ID(..), IS(..), MSH, ST(..), TS(..), componentSeparato
     , MilliSecondsPrecision(..), SecondsPrecision(..), MinutesPrecision(..), HoursPrecision(..), DaysPrecision(..), MonthsPrecision(..)
     , YearsPrecision(..))
 
+import HL7Parser exposing (Problem(..))
 import Helpers exposing (parseMaybe, parseSizedNumber, parseStringSegment, parseStringSegmentOfSize)
 import Html exposing (div, text)
 import Parser.Advanced exposing ((|.), (|=), Parser, Step(..), Token(..), andThen, backtrackable, chompIf, chompUntil, chompWhile, float, getChompedString, loop, map, oneOf, problem, run, spaces, succeed, symbol, token)
@@ -22,62 +23,62 @@ main =
             div [] [ Debug.toString pt |> text ]
 
 
-parseST : Parser x String ST
+parseST : Parser c Problem ST
 parseST =
     succeed ST
         |= parseStringSegment
 
 
-parseTS : Parser x String TS
+parseTS : Parser c Problem TS
 parseTS =
     succeed TS
         |= parseStringSegment
 
 
-parseID : Parser x String ID
+parseID : Parser c Problem ID
 parseID =
     succeed ID
         |= parseStringSegment
 
-parseNM : Parser x String NM
+parseNM : Parser c Problem NM
 parseNM =
     succeed NM
-        |= float "expecting float" "expecting number"
+        |= float NotAFloat NotANumber
 
 
-parseSizedID : Int -> Parser x String ID
+parseSizedID : Int -> Parser c Problem ID
 parseSizedID size =
     succeed ID
         |= parseStringSegmentOfSize size
 
 
-parseIS : Parser x String IS
+parseIS : Parser c Problem IS
 parseIS =
     succeed IS
         |= parseStringSegment
 
 
-parseHD : Parser x String HD
+parseHD : Parser c Problem HD
 parseHD =
     oneOf
         [ backtrackable <|
             succeed HD
                 |= map Just parseIS
-                |. symbol (Token componentSeparator <| "expected symbol '" ++ componentSeparator ++ "'")
+                |. symbol (Token componentSeparator <| ExpectedSeparator componentSeparator)
                 |= parseST
-                |. symbol (Token componentSeparator <| "expected symbol '" ++ componentSeparator ++ "'")
+                |. symbol (Token componentSeparator <| ExpectedSeparator componentSeparator)
                 |= parseID
         , succeed (HD Nothing)
             |= parseST
-            |. symbol (Token componentSeparator <| "expected symbol '" ++ componentSeparator ++ "'")
+            |. symbol (Token componentSeparator <| ExpectedSeparator componentSeparator)
             |= parseID
         ]
 
 
-parseDTM : Parser x String DTM
+parseDTM : Parser c Problem DTM
 parseDTM =
     let
-        assignToPrecision : (a -> Maybe b -> value) -> Parser x String a -> Parser x String (Maybe b) -> Parser x String value
+        assignToPrecision : (a -> Maybe b -> value) -> Parser c Problem a -> Parser c Problem (Maybe b) -> Parser c Problem value
         assignToPrecision precision parser maybeParser =
             map precision parser
                 |> andThen (\p -> map p maybeParser)
@@ -104,133 +105,133 @@ parseDTM =
         <| parseSizedNumber 1
 
 
-parseMSG : Parser x String MSG
+parseMSG : Parser c Problem MSG
 parseMSG =
     succeed MSG
         |= parseSizedID 3
-        |. symbol (Token componentSeparator <| "expected symbol '" ++ componentSeparator ++ "'")
+        |. symbol (Token componentSeparator <| ExpectedSeparator componentSeparator)
         |= parseSizedID 3
-        |. symbol (Token componentSeparator <| "expected symbol '" ++ componentSeparator ++ "'")
+        |. symbol (Token componentSeparator <| ExpectedSeparator componentSeparator)
         |= parseID
 
-parsePT : Parser x String PT
+parsePT : Parser c Problem PT
 parsePT =
     succeed PT
         |= parseID
-        |. symbol (Token componentSeparator <| "expected symbol '" ++ componentSeparator ++ "'")
+        |. symbol (Token componentSeparator <| ExpectedSeparator componentSeparator)
         |= parseMaybe parseID
 
-parseCWE : Parser x String CWE
+parseCWE : Parser c Problem CWE
 parseCWE =
     succeed CWE
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseID
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseID
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseID
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseST
         |= parseDTM
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseDTM
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseDTM
 
-parseVID : Parser x String VID
+parseVID : Parser c Problem VID
 parseVID =
     succeed VID
         |= parseID
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseCWE
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseCWE
 
-parseEI : Parser x String EI
+parseEI : Parser c Problem EI
 parseEI =
     succeed EI
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseIS
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseID
 
 
-parseMSH : Parser x String MSH
+parseMSH : Parser c Problem MSH
 parseMSH =
     succeed (MSH (ST fieldSeparator) (ST encodingCharacters))
-        |. symbol (Token "MSH" <| "expected symbol '" ++ "MSH" ++ "'")
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
-        |. symbol (Token encodingCharacters <| "expected symbol '" ++ encodingCharacters ++ "'")
+        |. symbol (Token "MSH" <| ExpectedSymbol "MSH")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
+        |. symbol (Token encodingCharacters <| ExpectedSymbol encodingCharacters)
         |= parseMaybe parseHD
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseHD
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseHD
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseHD
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseDTM
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMSG
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parsePT
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseVID
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseNM
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseST
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseID
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseID
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseID
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseID
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseCWE
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseID
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
         |= parseMaybe parseEI
-        |. symbol (Token fieldSeparator <| "expected symbol '" ++ fieldSeparator ++ "'")
+        |. symbol (Token fieldSeparator <| ExpectedSeparator fieldSeparator)
 
 
 
