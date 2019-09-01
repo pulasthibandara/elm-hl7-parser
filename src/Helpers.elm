@@ -1,6 +1,6 @@
 module Helpers exposing (..)
 
-import HL7Parser exposing (Problem(..))
+import HL7Parser exposing (Problem(..), Ctx)
 import Parser.Advanced exposing ((|.), (|=), Parser, Step(..), andThen, backtrackable, chompIf, chompUntil, chompWhile, float, getChompedString, loop, map, oneOf, problem, spaces, succeed, symbol, token)
 import Result exposing (Result)
 
